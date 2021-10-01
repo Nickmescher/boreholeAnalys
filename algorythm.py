@@ -22,6 +22,11 @@ def algorythm(df, indices):
                 answers.append(n[1])
     return answers
 
-def comparing(allInd, rightInd, percs):
-    diffInd = list(set(allInd) - set(rightInd))
-    return max(diffInd, default="no")
+def comparing(df, rightInd):
+    a = df["Процент открытия"][rightInd[0]]
+    b = 0
+    for n in enumerate(rightInd):
+        if df["Процент открытия"][n[1]] > a:
+            a = df["Процент открытия"][n[1]]
+            b = n[1]
+    return b

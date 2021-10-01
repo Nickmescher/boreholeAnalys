@@ -15,7 +15,9 @@ fig = make_subplots(rows=3, cols=1)
 fig2 = go.Figure()
 fig2 = make_subplots(rows=1, cols=1)
 fig4 = go.Figure()
-fig4 = make_subplots(rows=1, cols=1)
+fig4 = make_subplots(rows=3, cols=1, subplot_titles=("Изначальные данные в периоде максимального процента отдачи", "Общий график", "Соотношение дифференциалов процента открытия клапана и расхода газа"))
+fig5 = go.Figure()
+fig5 = make_subplots(rows=3, cols=1)
 fig3 = go.Figure()
 fig3 = make_subplots(rows=2, cols=1)  # создание графиков
 
@@ -23,7 +25,8 @@ percentagedf = "Процент открытия"
 time = "time"
 chargedf = "Расход газа"
 
-p = pd.read_csv(r"C:\Users\Redmi\Desktop\nickmescher\work\borehole Analys\1-1 (2021-09-13 00_00_00).csv", encoding='utf8', sep=';',
+p = pd.read_csv(r"C:\Users\Redmi\Desktop\nickmescher\work\borehole Analys\4004 (2021-09-13 00_00_00).csv",
+                encoding='utf8', sep=',',
                 decimal=',', parse_dates=[time],
                 usecols=[time, percentagedf, chargedf])
 
@@ -147,25 +150,59 @@ for n in enumerate(indices[::-1]):
 answers = alg.algorythm(normalized_df, indices)
 print(answers)
 
-endanswer = alg.comparing(indices[::-1], answers, percs)
+for n in enumerate(answers):
+    print(p[percentagedf][n[1]])
 
-if endanswer != "no":
+if len(answers) > 0:
+    endanswer = alg.comparing(p, answers)
+
     fig4.append_trace(go.Scatter(
         x=p[time][endanswer - 50:endanswer + 50],
-        y=normalized_df['Perc'][endanswer - 50:endanswer + 50],
+        y=p[percentagedf][endanswer - 50:endanswer + 50],
         name='Percentage'
     ), row=1, col=1)
 
     fig4.append_trace(go.Scatter(
         x=p[time][endanswer - 50:endanswer + 50],
-        y=normalized_df['Q_approx'][endanswer - 50:endanswer + 50],
+        y=p[chargedf][endanswer - 50:endanswer + 50],
         name='Q'
     ), row=1, col=1)
+
+    fig4.append_trace(go.Scatter(
+        x=p[time],
+        y=p[percentagedf],
+        name="Процент открытия",
+    ), row=2, col=1)
+
+    fig4.append_trace(go.Scatter(
+        x=p[time],
+        y=p[chargedf],
+        name="Расход газа",
+    ), row=2, col=1)
+
+    fig4.append_trace(go.Scatter(
+        x=p[time][endanswer - 50:endanswer + 50],
+        y=normalized_df['percForPeaks'][endanswer - 50:endanswer + 50],
+        name='percForPeaks'
+    ), row=3, col=1)
+
+    fig4.append_trace(go.Scatter(
+        x=p[time][endanswer - 50:endanswer + 50],
+        y=normalized_df['Perc_Diff'][endanswer - 50:endanswer + 50],
+        name='Perc_Diff'
+    ), row=3, col=1)
+
+    fig4.append_trace(go.Scatter(
+        x=p[time][endanswer - 50:endanswer + 50],
+        y=normalized_df['Q_OrigDiff'][endanswer - 50:endanswer + 50],
+        name='Q_Diff'
+    ), row=3, col=1)
+
     # fig4
 
     if not os.path.exists("images"):
         os.mkdir("images")
-    titleans = "Процент отсутствия отдачи скв Р-51 "
+    titleans = "Процен отдачи скв 4004 "
     dateans = p[time][endanswer]
     percans = p[percentagedf][endanswer]
     titleans += str(dateans)
@@ -175,13 +212,57 @@ if endanswer != "no":
 
     fig4.update_layout(title_text=titleans)
     fig4.show()
-    fig4.write_image("images/report_Р-51.pdf")
+    fig4.write_image("images/report_4004.pdf")
 else:
     if not os.path.exists("images"):
         os.mkdir("images")
-    titleans = "Оборудование исправно, отдача присутствует "
-    fig3.update_layout(title_text=titleans)
-    fig3.write_image("images/report_Р-51.pdf")
+    maxperc = max(p["Процент открытия"], default="100")
+    titleans = "Максимальный обнаруженный процент" + str(maxperc)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=p[percentagedf],
+        name="Процент открытия",
+    ), row=1, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=p[chargedf],
+        name="Расход газа",
+    ), row=1, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=normalized_df['Perc'],
+        name='Percentage'
+    ), row=2, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=normalized_df['Q_approx'],
+        name='Q'
+    ), row=2, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=normalized_df['percForPeaks'],
+        name='percForPeaks'
+    ), row=3, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=normalized_df['Perc_Diff'],
+        name='Perc_Diff'
+    ), row=3, col=1)
+
+    fig5.append_trace(go.Scatter(
+        x=p[time],
+        y=normalized_df['Q_OrigDiff'],
+        name='Q_Diff'
+    ), row=3, col=1)
+
+    fig5.update_layout(title_text=titleans)
+    fig5.write_image("images/report_4004.pdf")
     print(titleans)
 
 print()
